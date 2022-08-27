@@ -2,8 +2,8 @@
 data.raw["tile"]["red-desert-0"].collision_mask =  {"object-layer", "ground-tile"}
 
 local vault = table.deepcopy(data.raw["container"]["wooden-chest"])
-vault.name = "empire-vault"
-vault.localised_name = {"empire-vault"}
+vault.name = "empire_vault"
+vault.localised_name = {"empire_vault"}
 vault.damaged_trigger_effect = nil
 vault.minable = nil
 vault.vehicle_impact_sound = nil
@@ -19,6 +19,7 @@ vault.circuit_wire_max_distance = nil
 vault.picture = {filename="__TheEmpiredev__/graphics/vault.png", width = 128, height = 94}
 vault.collision_box = {{-1.7, -1.7}, {1.7, 1.7}}
 vault.selection_box = {{-2, -2}, {2, 2}}
+vault.inventory_type = "with_filters_and_bar"
 data:extend{vault}
 
 local worldMapTile = table.deepcopy(vault)
@@ -31,25 +32,32 @@ worldMapTile.picture = {filename="__core__/graphics/empty.png", width = 1, heigh
 data:extend{worldMapTile}
 
 local storage = table.deepcopy(data.raw["container"]["wooden-chest"])
-storage.name = "empire-storage"
-storage.localised_name = {"empire-storage"}
+storage.name = "empire_storage"
+storage.localised_name = {"empire_storage"}
 storage.minable = nil
+storage.inventory_type = "with_filters_and_bar"
 data:extend{storage}
 
+local blocked = table.deepcopy(data.raw["container"]["steel-chest"])
+blocked.name = "empire_blocked"
+blocked.localised_name = {"empire_blocked"}
+data:extend{blocked}
+
 local mechanicalBelt = table.deepcopy(data.raw["transport-belt"]["transport-belt"])
-mechanicalBelt.name = "empire-mechanical-belt"
-mechanicalBelt.localised_name = {"empire-mechanical-belt"}
+mechanicalBelt.name = "empire_mechanical_belt"
+mechanicalBelt.localised_name = {"empire_mechanical_belt"}
 mechanicalBelt.minable = nil
 mechanicalBelt.next_upgrade = nil
 data:extend{mechanicalBelt}
 
 local inserter = table.deepcopy(data.raw["inserter"]["inserter"])
-inserter.name = "empire-inserter"
-inserter.localised_name = {"empire-inserter"}
+inserter.name = "empire_inserter"
+inserter.localised_name = {"empire_inserter"}
 inserter.minable = nil
 inserter.next_upgrade = nil
 inserter.next_upgrade = nil
 inserter.energy_source = {type = "void"}
+inserter.allow_custom_vectors = true
 data:extend{inserter}
 
 local ironOre = data.raw["resource"]["iron-ore"]
@@ -58,32 +66,46 @@ ironOre.minimum = 1
 ironOre.infinite_depletion_amount = 0
 
 local miningDrill = table.deepcopy(data.raw["mining-drill"]["burner-mining-drill"])
-miningDrill.name = "empire-mining-drill"
-miningDrill.localised_name = {"empire-mining-drill"}
+miningDrill.name = "empire_mining_drill"
+miningDrill.localised_name = {"empire_mining_drill"}
 miningDrill.minable = nil
 miningDrill.next_upgrade = nil
 miningDrill.energy_source = {type = "void"}
 data:extend{miningDrill}
 
 local furnace = table.deepcopy(data.raw["furnace"]["stone-furnace"])
-furnace.name = "empire-furnace"
-furnace.localised_name = {"empire-furnace"}
+furnace.name = "empire_furnace"
+furnace.localised_name = {"empire_furnace"}
 furnace.minable = nil
 furnace.next_upgrade = nil
 furnace.energy_source = {type = "void"}
 data:extend{furnace}
 
-local workshop = table.deepcopy(data.raw["assembling-machine"]["assembling-machine-1"])
-workshop.name = "empire-workshop"
-workshop.localised_name = {"empire-workshop"}
+local workshop = table.deepcopy(data.raw["container"]["wooden-chest"])
+workshop.name = "empire_workshop"
+workshop.localised_name = {"empire_workshop"}
 workshop.minable = nil
 workshop.next_upgrade = nil
 workshop.energy_source = {type = "void"}
+workshop.picture = {filename="__TheEmpiredev__/graphics/workshop.png", width = 96, height = 103}
+workshop.collision_box = data.raw["assembling-machine"]["assembling-machine-1"].collision_box
+workshop.selection_box = data.raw["assembling-machine"]["assembling-machine-1"].selection_box
+--workshop.selection_box = {{0, 0}, {2, 2}}
+workshop.inventory_type = "with_filters_and_bar"
 data:extend{workshop}
 
+local workshopOutput = table.deepcopy(workshop)
+workshopOutput.selection_box = nil
+--workshopOutput.selection_box = {{-2, -2}, {0, 0}}
+workshopOutput.localised_name = {"empire_workshop_output"}
+workshopOutput.picture = {filename="__core__/graphics/empty.png", width = 1, height = 1}
+--workshopOutput.picture = {filename="__TheEmpiredev__/graphics/workshop.png", width = 96, height = 103}
+workshopOutput.name = "empire_workshop_output"
+data:extend{workshopOutput}
+
 local greenhouse = table.deepcopy(vault)
-greenhouse.name = "empire-greenhouse"
-greenhouse.localised_name = {"empire-greenhouse"}
+greenhouse.name = "empire_greenhouse"
+greenhouse.localised_name = {"empire_greenhouse"}
 greenhouse.collision_box = {{-1.2, -1.2}, {1.2, 1.2}}
 greenhouse.selection_box = {{-1.5, -1.5}, {1.5, 1.5}}
 greenhouse.picture = {filename="__TheEmpiredev__/graphics/greenhouse.png", width = 96, height = 86}

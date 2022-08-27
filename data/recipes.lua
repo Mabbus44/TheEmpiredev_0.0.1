@@ -1,8 +1,29 @@
 -- New recipes
 local recipe = table.deepcopy(data.raw["recipe"]["transport-belt"])
-recipe.name = "empire-mechanical-belt"
-recipe.localised_name = {"empire-mechanical-belt"}
-recipe.result = "empire-mechanical-belt"
+recipe.name = "empire_mechanical_belt"
+recipe.localised_name = {"empire_mechanical_belt"}
+recipe.result = "empire_mechanical_belt"
+recipe.enabled = true
+recipe.energy_required = 1
+recipe.ingredients = {{name="empire_food", amount=2}}
+recipe.result_count = 1
+data:extend{recipe}
+
+recipe = table.deepcopy(data.raw["recipe"]["transport-belt"])
+recipe.name = "empire_inserter"
+recipe.localised_name = {"empire_inserter"}
+recipe.result = "empire_inserter"
+recipe.enabled = true
+recipe.energy_required = 1
+recipe.ingredients = {{name="empire_food", amount=2}}
+recipe.result_count = 1
+data:extend{recipe}
+
+-- Handcrafting
+recipe = table.deepcopy(data.raw["recipe"]["transport-belt"])
+recipe.name = "empire_mechanical_belt_hand"
+recipe.localised_name = {"empire_mechanical_belt"}
+recipe.result = "empire_mechanical_belt"
 recipe.enabled = true
 recipe.energy_required = 0.002
 recipe.ingredients = {}
@@ -10,39 +31,39 @@ recipe.result_count = 1
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-storage"
-recipe.localised_name = {"empire-storage"}
-recipe.result = "empire-storage"
+recipe.name = "empire_storage_hand"
+recipe.localised_name = {"empire_storage"}
+recipe.result = "empire_storage"
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-inserter"
-recipe.localised_name = {"empire-inserter"}
-recipe.result = "empire-inserter"
+recipe.name = "empire_inserter_hand"
+recipe.localised_name = {"empire_inserter"}
+recipe.result = "empire_inserter"
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-mining-drill"
-recipe.localised_name = {"empire-mining-drill"}
-recipe.result = "empire-mining-drill"
+recipe.name = "empire_mining_drill_hand"
+recipe.localised_name = {"empire_mining_drill"}
+recipe.result = "empire_mining_drill"
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-furnace"
-recipe.localised_name = {"empire-furnace"}
-recipe.result = "empire-furnace"
+recipe.name = "empire_furnace_hand"
+recipe.localised_name = {"empire_furnace"}
+recipe.result = "empire_furnace"
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-workshop"
-recipe.localised_name = {"empire-workshop"}
-recipe.result = "empire-workshop"
+recipe.name = "empire_workshop_hand"
+recipe.localised_name = {"empire_workshop"}
+recipe.result = "empire_workshop"
 data:extend{recipe}
 
 recipe = table.deepcopy(recipe)
-recipe.name = "empire-greenhouse"
-recipe.localised_name = {"empire-greenhouse"}
-recipe.result = "empire-greenhouse"
+recipe.name = "empire_greenhouse_hand"
+recipe.localised_name = {"empire_greenhouse"}
+recipe.result = "empire_greenhouse"
 data:extend{recipe}
 
 -- Remove vanilla recepies

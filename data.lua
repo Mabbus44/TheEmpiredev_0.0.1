@@ -1,7 +1,9 @@
+empireG = require("control/globals.lua")
 require("data/entities.lua")
 require("data/recipes.lua")
 require("data/items.lua")
 require("data/technologies.lua")
+require("data/mapGeneration.lua")
 
 local sprite = table.deepcopy(data.raw["sprite"]["developer"])
 sprite.name = "empire-general"
