@@ -1,6 +1,5 @@
-local empire = {}
-
 function empire.openWorkshopGui(player, entity)
+	empireG.logF("openWorkshopGui", {player, entity})
 	local frame = player.gui.relative.add{type="frame", name = "workshopProgressGui", direction = "vertical", caption = {"progress"}}
 	frame.anchor = {gui = defines.relative_gui_type.container_gui, position = defines.relative_gui_position.top, name = "empire_workshop"}
 	local constructionTasksFlow = frame.add{type = "flow", name = "constructionTasksFlow"}
@@ -10,9 +9,9 @@ function empire.openWorkshopGui(player, entity)
 	local taskId = 1
 	while cTasks do
 		if cTasks.count ~= 1 then 
-			constructionTasksFlow.add{type="sprite-button", sprite="item/" .. iMap[cTasks.name][2], name=tostring(taskId), number = cTasks.count}
+			constructionTasksFlow.add{type="sprite-button", sprite="item/" .. empireG.iMap[cTasks.name][2], name=tostring(taskId), number = cTasks.count}
 		else
-			constructionTasksFlow.add{type="sprite-button", sprite="item/" .. iMap[cTasks.name][2], name=tostring(taskId)}
+			constructionTasksFlow.add{type="sprite-button", sprite="item/" .. empireG.iMap[cTasks.name][2], name=tostring(taskId)}
 		end
 		taskId = taskId + 1
 		cTasks = cTasks.next
@@ -23,54 +22,22 @@ function empire.openWorkshopGui(player, entity)
 	empireG.gui[player.index] = {entity = entity, buildingStatus = eStats.buildingStats}
 end
 
-function empire.openWorkshopItemsGui(player)
-	if player.gui.screen["workshopItemsGui"] ~= nil then 
-		player.gui.screen["workshopItemsGui"].bring_to_front()
-		return 
-	end
-	local caption = {"choose_item"}
-	local frame = player.gui.screen.add {type="frame", name="workshopItemsGui", direction="vertical"}
-	frame.location = {800,400}
-	local titleFlow = frame.add{type = "flow", name = "titleFlow"}
-  local title = titleFlow.add{type = "label", caption = caption, style = "frame_title"}
-  title.drag_target = frame
-  local pusher = titleFlow.add{type = "empty-widget", style = "draggable_space_header"}
-  pusher.style.vertically_stretchable = true
-  pusher.style.horizontally_stretchable = true
-  pusher.drag_target = frame
-  titleFlow.add{type = "sprite-button", style = "frame_action_button", sprite = "utility/close_white", name = "closeWorkshopItemsGui"}
-
-	local entity = empireG.gui[player.index].entity
-	local eStats = empireG.entityStats[entity.unit_number]
-	local buttonFlow = frame.add{type = "flow", name = "buttonFlow"}
-	for i, name in pairs(eStats.recipes) do
-		buttonFlow.add{type="sprite-button", sprite="item/" .. iMap[name][2], name=name}
-	end
-	local valueFlow = frame.add{type = "flow", name = "valueFlow"}
-	valueFlow.add{type="label", caption={"construct_amount"}, name = "lbl1"}
-	valueFlow.add{type="textfield", numeric=true, name="valueText", text = "1"}
-	valueFlow.add{type="label", caption={"infinite"}, name = "lbl2"}
-	valueFlow.add{type="checkbox", name = "infinite", state = false}
-end
-
 function empire.closeWorkshopGui(player)
-	if player.gui.screen["workshopItemsGui"] ~= nil then player.gui.screen["workshopItemsGui"].destroy() end
+	empireG.logF("closeWorkshopGui", {player})
+	if player.gui.screen["itemGui"] ~= nil then player.gui.screen["itemGui"].destroy() end
 	player.gui.relative["workshopProgressGui"].destroy()
 	empireG.gui[player.index] = {}
 end
 
-function empire.closeWorkshopItemsGui(player)
-	if player.gui.screen["workshopItemsGui"] ~= nil then player.gui.screen["workshopItemsGui"].destroy() end
-end
-
 function empire.handleWorkshopButtonPress(player, element)
+	empireG.logF("handleWorkshopButtonPress", {player, element})
+	local eStats = empireG.entityStats[empireG.gui[player.index].entity.unit_number]
 	if element.name == "construct" then
-		empire.openWorkshopItemsGui(player)
+		empire.openItemGui(empire.workshopAddToQueue, player, eStats.recipes, true, true)
 		return
 	end
 	if element.parent == nil or element.parent.name ~= "constructionTasksFlow" then return end
 	local cTasksFlow = element.parent
-	local eStats = empireG.entityStats[empireG.gui[player.index].entity.unit_number]
 	local cTasks = eStats.constructionTasks
 	local taskId = tonumber(element.name)
 	local findTaskId = 1
@@ -99,16 +66,12 @@ function empire.handleWorkshopButtonPress(player, element)
 	end
 end
 
-function empire.handleWorkshopItemsButtonPress(player, element)
-	if element.parent.name ~= "buttonFlow" then return end
-	local valueFlow = element.parent.parent.valueFlow
+function empire.workshopAddToQueue(player, itemName, itemCount)
+	empireG.logF("workshopAddToQueue", {player, itemName, itemCount})
 	local entity = empireG.gui[player.index].entity
 	local eStats = empireG.entityStats[entity.unit_number]
 	local cTasks = eStats.constructionTasks
-	local value = tonumber(valueFlow.valueText.text)
-	if value == nil then value = 1 end
-	if valueFlow.infinite.state then value = 0 end
-	local newTask = {name = element.name, count = value}
+	local newTask = {name = itemName, count = itemCount}
 	local taskId = 1
 	if cTasks == nil then
 		eStats.constructionTasks = newTask
@@ -123,16 +86,16 @@ function empire.handleWorkshopItemsButtonPress(player, element)
 	local cTasksFlow = player.gui.relative.workshopProgressGui.constructionTasksFlow
 	cTasksFlow.construct.destroy()
 	if newTask.count == 1 then 
-		cTasksFlow.add{type="sprite-button", sprite="item/" .. iMap[newTask.name][2], name=tostring(taskId)}
+		cTasksFlow.add{type="sprite-button", sprite="item/" .. empireG.iMap[newTask.name][2], name=tostring(taskId)}
 	else
-		cTasksFlow.add{type="sprite-button", sprite="item/" .. iMap[newTask.name][2], name=tostring(taskId), number = newTask.count}
+		cTasksFlow.add{type="sprite-button", sprite="item/" .. empireG.iMap[newTask.name][2], name=tostring(taskId), number = newTask.count}
 	end
 	cTasksFlow.add{type="sprite-button", sprite="empire-add", name="construct"}
-	local recipe = game.recipe_prototypes[newTask.name]
 	if taskId == 1 then empire.workshopStartBuildItem(entity) end
 end
 
 function empire.workshopStartBuildItem(entity)
+	empireG.logF("workshopStartBuildItem", {entity})
 	local eStats = empireG.entityStats[entity.unit_number]
 	local cTasks = eStats.constructionTasks
 	if cTasks == nil then
@@ -180,6 +143,7 @@ function empire.workshopStartBuildItem(entity)
 end
 
 function empire.workshopPauseBuildItem(entity)
+	empireG.logF("workshopPauseBuildItem", {entity})
 	local eStats = empireG.entityStats[entity.unit_number]
 	if eStats.buildingStats.status ~= "building" then return end
 	eStats.buildingStats.status = "paused"
@@ -202,6 +166,7 @@ function empire.workshopPauseBuildItem(entity)
 end
 
 function empire.workshopCompleteItem(entity)
+	empireG.logF("workshopCompleteItem", {entity})
 	local eStats = empireG.entityStats[entity.unit_number]
 	local task = eStats.constructionTasks
 	if task == nil then return end
@@ -245,5 +210,3 @@ function empire.workshopCompleteItem(entity)
 	eStats.buildingStats.status = "idle"
 	if eStats.constructionTasks then empire.workshopStartBuildItem(entity) end
 end
-
-return empire

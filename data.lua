@@ -1,4 +1,4 @@
-empireG = require("control/globals.lua")
+require("control/globals.lua")
 require("data/entities.lua")
 require("data/recipes.lua")
 require("data/items.lua")

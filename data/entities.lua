@@ -111,3 +111,34 @@ greenhouse.selection_box = {{-1.5, -1.5}, {1.5, 1.5}}
 greenhouse.picture = {filename="__TheEmpiredev__/graphics/greenhouse.png", width = 96, height = 86}
 greenhouse.energy_source = {type = "void"}
 data:extend{greenhouse}
+
+local huntingcabin = table.deepcopy(vault)
+huntingcabin.name = "empire_huntingcabin"
+huntingcabin.localised_name = {"empire_huntingcabin"}
+huntingcabin.collision_box = data.raw["assembling-machine"]["assembling-machine-1"].collision_box
+huntingcabin.selection_box = data.raw["assembling-machine"]["assembling-machine-1"].selection_box
+huntingcabin.picture = {filename="__TheEmpiredev__/graphics/workshop.png", width = 96, height = 103}
+huntingcabin.energy_source = {type = "void"}
+data:extend{huntingcabin}
+
+local squad = table.deepcopy(data.raw["unit"]["small-biter"])
+squad.name = "empire_squad"
+squad.localised_name = {"empire_squad"}
+squad.corpse = nil
+squad.affected_by_tiles = nil
+squad.ai_settings = nil
+squad.alternative_attacking_frame_sequence = nil
+squad.can_open_gates = nil
+squad.dying_sound = nil
+squad.has_belt_immunity = nil
+squad.light = nil
+squad.max_pursue_distance = nil
+squad.min_pursue_time = nil
+squad.move_while_shooting = nil
+squad.radar_range = nil
+squad.render_layer = nil
+squad.rotation_speed = nil
+squad.running_sound_animation_positions = nil
+squad.spawning_time_modifier = nil
+squad.walking_sound = nil
+data:extend{squad}

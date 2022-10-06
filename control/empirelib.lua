@@ -1,38 +1,58 @@
 empire = {}
--- Merge required tables into empire table
-local empireGui = require("control/empireGui.lua") 
-for k,v in pairs(empireGui) do empire[k] = v end
-local empireMapGeneration = require("control/empireMapGeneration.lua") 
-for k,v in pairs(empireMapGeneration) do empire[k] = v end
+require("control/globals.lua")
+require("control/empireGui.lua") 
+require("control/empireMapGeneration.lua") 
+require("control/hunting.lua")
+
+require("control/entities/huntingcabin.lua")
+require("control/entities/storage.lua")
+require("control/entities/vault.lua")
+require("control/entities/workshop.lua")
+
+require("control/gui/choseItem.lua")
+require("control/gui/huntingPath.lua")
+require("control/gui/itemListBuilder.lua")
+require("control/gui/status.lua")
+require("control/gui/top.lua")
+
+require("control/squads/formSquad.lua")
+require("control/squads/squad.lua")
+require("control/squads/squadList.lua")
+require("control/squads/squadQueue.lua")
+require("control/squads/squadStats.lua")
+require("control/squads/squadTemplates.lua")
 
 function empire.disableCrashsite()
+	empireG.logF("disableCrashsite", {})
 	remote.call("freeplay", "set_disable_crashsite", true)
 	remote.call("freeplay", "set_skip_intro", true)
 end
 
 function empire.removeCharacter(player)
+	empireG.logF("removeCharacter", {player})
 	if player.character then
 		player.character.destroy()
 		player.character = nil
 	end
 end
 
-function empire.createSettlementMap(mapSize)
+function empire.createSettlementMap(mapSize, position)
+	empireG.logF("createSettlementMap", {mapSize})
 	local surfaceSettings = table.deepcopy(game.surfaces["nauvis"].map_gen_settings)
 	surfaceSettings.width = mapSize
 	surfaceSettings.height = mapSize
 	empireG.settlementCount = empireG.settlementCount + 1
-	log("Creating settlement " .. empireG.settlementCount .. " of size " .. mapSize)
 	local newSurface = game.create_surface("settlement" .. empireG.settlementCount, surfaceSettings)	
 	newSurface.request_to_generate_chunks({x=0,y=0}, mapSize)
 	--Tested that for every 64 map size factorio generates 1 extra chunk in all directions.
 	empireG.surfaces[newSurface.name] = {surface = newSurface, chunksGenerated = 0, chunksGoal = ((math.floor(mapSize / 64) + 1) * 2) ^ 2,
-		population = 10, maxPopulation = 100, populationDecimals = 0.0, foodPerPerson = 0.01, maxReservePerPerson = 1.2, deadPersonGive = 1, populationGroth = 0,
-		foodConsumtion = 0, foodReserves = 12, foodForOnePersonGroth = 2, grothEnabled = true}
+		population = 100, maxPopulation = 100, freeWorkers = 100, populationDecimals = 0.0, foodPerPerson = 0.00, maxReservePerPerson = 1.2, deadPersonGive = 1, populationGroth = 0,
+		foodConsumtion = 0, foodReserves = 12, foodForOnePersonGroth = 2, grothEnabled = true, squadQueue = {}, huntingPaths = {}, position = position}
 	return newSurface
 end
 
 function empire.generateChunk(surface, area)
+	empireG.logF("generateChunk", {surface, area}, 2)
 	local minY, maxY, minX, maxX
 	if surface.map_gen_settings.height == nil or surface.map_gen_settings.height == 0 then 
 		minY = area.left_top.y
@@ -67,14 +87,25 @@ function empire.generateChunk(surface, area)
 				entity.insert({name="empire_furnace", count=10})
 				entity.insert({name="empire_workshop", count=10})
 				entity.insert({name="empire_greenhouse", count=10})
+				entity.insert({name="empire_huntingcabin", count=10})
 				surface.create_entity{name="iron-ore", position = {x=3, y=3}, force = "neutral"}
 				entity = empire.createEntity(surface, "empire_workshop", {x=3, y=-3}, nil, "player")
+				entity = empire.createEntity(surface, "empire_huntingcabin", {x=-4, y=0}, nil, "player")
+				table.insert(empireG.squadList, {name="squad1", home=surface.name, status="idle", task="none", stock = {empire_food = 0}, squad={empire_people=10, empire_spear=10, empire_backpack=10}, template={empire_people=10, empire_spear=10, empire_backpack=10}})
+				table.insert(empireG.squadList, {name="squad2", home=surface.name, status="idle", task="none", stock = {empire_food = 0}, squad={empire_people=10}, template={empire_people=10}})
+				table.insert(empireG.squadList, {name="squad3", home=surface.name, status="idle", task="none", stock = {empire_food = 0}, squad={empire_people=10}, template={empire_people=10}})
+				table.insert(empireG.squadList, {name="squad4", home=surface.name, status="idle", task="none", stock = {empire_food = 0}, squad={empire_people=10}, template={empire_people=10}})
+				table.insert(empireG.squadList, {name="squad5", home=surface.name, status="idle", task="none", stock = {empire_food = 0}, squad={empire_people=10}, template={empire_people=10}})
+				for _, squad in pairs(empireG.squadList) do
+					empire.calculateSquadStats(squad)
+				end
 			end
 		end
 	end
 end
 
 function empire.generateSettlementChunk(surface, minY, maxY, minX, maxX)
+	empireG.logF("generateSettlementChunk", {surface, minY, maxY, minX, maxX})
 	local tiles = {}
 	local buildArea = 81
 	for y= minY, maxY do
@@ -94,14 +125,17 @@ function empire.generateSettlementChunk(surface, minY, maxY, minX, maxX)
 end
 
 function empire.selectItemGhost(player, itemStack)
+	empireG.logF("selectItemGhost", {player, itemStack})
 	player.cursor_ghost = itemStack
 end
 
 function empire.clearInventory(player)
+	empireG.logF("clearInventory", {player})
 	player.get_main_inventory().clear()
 end
 
 function empire.replaceGhosts(surface)
+	empireG.logF("replaceGhosts", {surface})
 	local entities = surface.find_entities_filtered{name = "entity-ghost"}
 	local storages = surface.find_entities_filtered{name = "empire_storage"}	
 	for k, entity in pairs(entities) do
@@ -116,12 +150,14 @@ function empire.replaceGhosts(surface)
 end
 
 function empire.createEntity(surface, name, position, direction, force)
+	empireG.logF("createEntity", {surface, name, position, direction, force})
 	local entity = surface.create_entity{name=name, position = position, direction = direction, force = force}
 	local bonusStats = {workerCount = 0, enabled = true, paused = false}
-	if name == "empire_vault" then bonusStats = {}
+	if name == "empire_vault" then
+		bonusStats = {}
 	elseif name == "empire_storage" then 
 		bonusStats.workerCount = nil
-		bonusStats.filters = {}
+		bonusStats.itemAmountList = {}
 	elseif name == "empire_mechanical_belt" then bonusStats.requiredWorkers = 1
 	elseif name == "empire_inserter" then 
 		bonusStats.requiredWorkers = 2
@@ -133,7 +169,7 @@ function empire.createEntity(surface, name, position, direction, force)
 		empireG.entityStats[outputEntity.unit_number] = {inputEntity = entity}
 		bonusStats.requiredWorkers = 10
 		bonusStats.craftingSpeed = 1.0
-		bonusStats.recipes = {"empire_mechanical_belt", "empire_inserter"}
+		bonusStats.recipes = empireG.listWorkshopConstruction
 		bonusStats.buildingStats = {status = "idle"}
 		bonusStats.outputEntity = outputEntity
 		local box = entity.bounding_box
@@ -142,18 +178,19 @@ function empire.createEntity(surface, name, position, direction, force)
 		local inventory = entity.get_inventory(defines.inventory.chest)
 		inventory.insert({name="empire_food", count=100})
 	elseif name == "empire_greenhouse" then bonusStats.requiredWorkers = 20
+	elseif name == "empire_huntingcabin" then bonusStats.requiredWorkers = 20
 	else log("empire-error: Invalid name in empire.createEntity: " .. name) end
 	if bonusStats.requiredWorkers then
 		bonusStats.enabled = false
 		entity.active = false
 	end
-	log("Entity " .. entity.name .. " " .. entity.unit_number .. " created (" .. tostring(entity.active) .. ") on surface " .. surface.name)
 	empireG.entityStats[entity.unit_number] = bonusStats
 	empire.distributeWorkers(surface)
 	return entity
 end
 
 function empire.distributeWorkers(surface)
+	empireG.logF("distributeWorkers", {surface})
 	local workers = empireG.surfaces[surface.name].population
 	local entities = surface.find_entities()
 	local outOfWorkers = false
@@ -176,13 +213,13 @@ function empire.distributeWorkers(surface)
 					empire.entitySetEnable(entity, eStats, true)
 				end
 			end
-			--log("Entity " .. entity.unit_number .. " given workers")
 		end
 	end
+	empireG.surfaces[surface.name].freeWorkers = workers
 end
 
 function empire.entitySetEnable(entity, eStats, val)
-	--log("Set enable " .. entity.unit_number .. " from " .. tostring(eStats.enabled) .. " to " .. tostring(val))
+	empireG.logF("entitySetEnable", {entity, eStats, val})
 	if eStats.enabled == val then return end
 	entity.active = val
 	eStats.enabled = val
@@ -190,6 +227,7 @@ function empire.entitySetEnable(entity, eStats, val)
 end
 
 function empire.takeItemFromStorage(surface, storages, itemName)
+	empireG.logF("takeItemFromStorage", {surface, storages, itemName})
 	for k, storage in pairs(storages) do
 		if storage.get_item_count(itemName) > 0 then
 			storage.remove_item({name = itemName, count = 1})
@@ -200,19 +238,37 @@ function empire.takeItemFromStorage(surface, storages, itemName)
 end
 
 function empire.removeDeconstructed(surface)
+	empireG.logF("removeDeconstructed", {surface})
 	local entities = surface.find_entities_filtered{to_be_deconstructed = true}
 	local storages = surface.find_entities_filtered{name = "empire_storage"}	
 	for k, entity in pairs(entities) do
-		if empire.putItemInStorage(surface, storages, entity) then entity.destroy() end
+		if string.find(entity.name, "empire_", 1, true) then
+			empire.putItemInStorage(nil, storages, entity)
+		end
 	end
 end
 
+-- Provide either surface or storages
 function empire.putItemInStorage(surface, storages, entity)
-	if not string.find(entity.name, "empire-") then return end
-	for k, storage in pairs(storages) do
-		if storage.can_insert(entity.name) then
-			storage.insert({name = entity.name, count = 1})
+	empireG.logF("putItemInStorage", {surface, storages, entity})
+	if empire.addItemTypeToStorage(sutface, storages, entity.name) then
+		if empireG.entityStats[entity.unit_number].outputEntity ~= nil then
 			empireG.entityStats[entity.unit_number].outputEntity.destroy()
+		end
+		entity.destroy()
+	end
+end
+
+-- Provide either surface or storages
+function empire.addItemTypeToStorage(surface, storages, entityName, count)
+	empireG.logF("addItemTypeToStorage", {surface, storages, entityName, count})
+	if count == nil then count = 1 end
+	if surface ~= nil then
+		storages = surface.find_entities_filtered{name = "empire_storage"}
+	end
+	for k, storage in pairs(storages) do
+		if storage.can_insert({name = entityName, count = count}) then
+			storage.insert({name = entityName, count = count})
 			return true
 		end
 	end
@@ -220,6 +276,7 @@ function empire.putItemInStorage(surface, storages, entity)
 end
 
 function empire.gatherResources()
+	empireG.logF("gatherResources", {}, 2)
 	for i=1,empireG.settlementCount do
 		local greenhouses = empireG.surfaces["settlement" .. i].surface.find_entities_filtered{name = "empire_greenhouse"}
 		for k, entity in pairs(greenhouses) do
@@ -229,6 +286,7 @@ function empire.gatherResources()
 end
 
 function empire.adjustFoodAndPopulation()
+	empireG.logF("adjustFoodAndPopulation", {}, 2)
 	for i=1,empireG.settlementCount do
 		local sData = empireG.surfaces["settlement" .. i]
 		-- Fill reserves with storage
@@ -268,6 +326,7 @@ function empire.adjustFoodAndPopulation()
 end
 
 function empire.restartWorkshops()
+	empireG.logF("restartWorkshops", {}, 2)
 	-- it will only start like half of the workshops per run, but whatever, good enough
 	for unit_number, entity in pairs(empireG.blockedWorkshops) do
 		if empireG.entityStats[unit_number].buildingStats.status == "blocked input" then
@@ -283,9 +342,16 @@ function empire.restartWorkshops()
 end
 
 function empire.inserterChangeDrop(inserters)
+	empireG.logF("inserterChangeDrop", {inserters})
 	for _, inserter in pairs(inserters) do
 		if inserter.drop_target and inserter.drop_target.name == "empire_workshop_output" then
 			inserter.drop_target = empireG.entityStats[inserter.drop_target.unit_number].inputEntity
 		end
 	end
+end
+
+function empire.dist(pos1, pos2)
+	local dx = math.abs(pos1.x-pos2.x)
+	local dy = math.abs(pos1.y-pos2.y)
+	return math.sqrt(dx*dx + dy*dy)
 end

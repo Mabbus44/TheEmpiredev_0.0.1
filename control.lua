@@ -1,6 +1,4 @@
 require("util")
-empireG = require("control/globals.lua")
-iMap = require("data/entityToItemMap.lua")
 require("control/empirelib.lua") 
 
 script.on_init(function()
@@ -10,11 +8,12 @@ script.on_init(function()
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
-	empire.removeCharacter(game.get_player(event.player_index))
-	for k, player in pairs(game.players) do
-		empire.openTopGui(player)
-		empire.openStatusGui(player)
-	end
+	empireG.logF("on_player_created", {event})
+	local player = game.get_player(event.player_index)
+	empire.removeCharacter(player)
+	empire.openTopGui(player)
+	empire.openStatusGui(player)
+	empireG.gui[event.player_index] = {}
 end)
 
 script.on_event(defines.events.on_selected_entity_changed, function(event)
@@ -22,11 +21,15 @@ script.on_event(defines.events.on_selected_entity_changed, function(event)
 end)
 
 script.on_event(defines.events.on_gui_opened, function(event)
-	empire.handleOpenGui(game.get_player(event.player_index), event.entity)
+	empireG.logF("on_gui_opened", {event})
+	if event.gui_type == defines.gui_type.entity then
+		empire.handleOpenBuiltInGui(game.get_player(event.player_index), event.entity)
+	end
 end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
-	empire.handleCloseGui(game.get_player(event.player_index), event.entity, event.element, event.gui_type)
+	empireG.logF("on_gui_closed", {event})
+	empire.handleCloseGui(event)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
@@ -34,11 +37,13 @@ script.on_event(defines.events.on_gui_click, function(event)
 end)
 
 script.on_event(defines.events.on_gui_value_changed, function(event)
-	if empire.isGuiParent(event.element, "storageFilterGui") then empire.handleStorageValueChange(event) end
+	empireG.logF("on_gui_value_changed", {event})
+	if empire.isGuiParent(event.element, "ILBValueFlow") then empire.handleItemListBuilderValueChange(event) end
 end)
 
 script.on_event(defines.events.on_gui_text_changed, function(event)
-	if empire.isGuiParent(event.element, "storageFilterGui") then empire.handleStorageTextChange(event) end
+	empireG.logF("on_gui_text_changed", {event})
+	if empire.isGuiParent(event.element, "ILBValueFlow") then empire.handleItemListBuilderTextChange(event) end
 end)
 
 script.on_event(defines.events.on_chunk_generated, function(event)
@@ -53,6 +58,13 @@ script.on_event(defines.events.on_player_crafted_item, function(event)
 	empire.selectItemGhost(game.get_player(event.player_index), event.item_stack)
 end)
 
+script.on_event(defines.events.on_player_used_capsule, function(event)
+	empireG.logF("on_player_used_capsule", {event})
+	if event.item.name=="empire_picker" then
+		empire.addToSelectedTiles(event)
+	end
+end)
+
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 	empire.removeDeconstructed(event.entity.surface)
 end)
@@ -62,11 +74,12 @@ script.on_event(defines.events.on_player_main_inventory_changed, function(event)
 end)
 
 script.on_event(defines.events.on_player_rotated_entity, function(event)
+	empireG.logF("on_player_rotated_entity", {event})
 	if event.entity.name == "empire_inserter" then empireG.addEvent(game.tick+1, empire.inserterChangeDrop, {{event.entity}}) end
 end)
 
 script.on_event(defines.events.on_entity_destroyed, function(event)
-	log(empireG.log(event.unit_number))
+	empireG.logF("on_entity_destroyed", {event})
 	if event.unit_number == nil then return end
 	local eStats = empireG.entityStats[event.unit_number]
 	if eStats == nil then return end

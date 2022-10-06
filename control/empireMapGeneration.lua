@@ -1,7 +1,5 @@
-local empireMagGen = {}
-
-function empireMagGen.generateWorldMap()
-	log("World map created at tick " .. game.tick)
+function empire.generateWorldMap()
+	empireG.logF("generateWorldMap", {})
 	local surface = game.surfaces["nauvis"]
 	empireG.worldMapCreated = true
 	surface.clear(true)
@@ -23,8 +21,8 @@ function empireMagGen.generateWorldMap()
 	surface.map_gen_settings = mgs
 end
 
-function empireMagGen.worldMapChunkGenerated(surface, minY, maxY, minX, maxX)
-	--log(surface.name .. " generated (" .. minX .. "," .. minY .. ")-(" .. maxX .. "," .. maxY .. ") at tick " .. game.tick .. " (" .. empireG.tileCount .. ")")
+function empire.worldMapChunkGenerated(surface, minY, maxY, minX, maxX)
+	empireG.logF("worldMapChunkGenerated", {surface, minY, maxY, minX, maxX}, 2)
 	for y = minY, maxY do
 		for x = minX, maxX do
 			local surfaceName = surface.get_tile(x, y).name
@@ -39,11 +37,13 @@ function empireMagGen.worldMapChunkGenerated(surface, minY, maxY, minX, maxX)
 				if num == 3 then surface.create_entity{name="sand-rock-big", position = {x=x, y=y}, force = "neutral"} end
 			end
 			if x==0 and y == 0 then
-				local newSurface = empire.createSettlementMap(100)
+				local newSquad = surface.create_entity{name="empire_squad", position = {x=3, y=3}, force = game.forces["player"]}
+				newSquad.set_command{type = defines.command.go_to_location, destination = {x=10, y=10}}
+				local newSurface = empire.createSettlementMap(100, {x=0, y=0})
 				local tile = surface.create_entity{name="empire-world-map-tile", position = {x=0, y=0}, force = "neutral"}
 				empireG.worldMapTiles["" .. tile.position.x .. "," .. tile.position.y] = {surface = newSurface}
 			--elseif x==2 and y == 2 then
-				--local newSurface = empire.createSettlementMap(70)
+				--local newSurface = empire.createSettlementMap(70, {x=2, y=2})
 				--local tile = surface.create_entity{name="empire-world-map-tile", position = {x=2, y=2}, force = "neutral"}
 				--empireG.worldMapTiles["" .. tile.position.x .. "," .. tile.position.y] = {surface = newSurface}
 			else
@@ -66,5 +66,3 @@ function empireMagGen.worldMapChunkGenerated(surface, minY, maxY, minX, maxX)
 		end
 	end
 end
-
-return empireMagGen

@@ -1,6 +1,5 @@
-local empire = {}
-
 function empire.openStatusGui(player)
+	empireG.logF("openStatusGui", {player})
 	local frame = player.gui.left.add{type="frame", name = "statusGui"}
 	frame.caption = "nothing selected"
 	local label = frame.add{type="label", caption="", name = "stats"}
@@ -8,6 +7,7 @@ function empire.openStatusGui(player)
 end
 
 function empire.updateStatusGui(player)
+	empireG.logF("updateStatusGui", {player})
 	if player.selected == nil or not string.find(player.selected.name, "empire-") then
 		player.gui.left["statusGui"].caption = "nothing selected"
 		player.gui.left["statusGui"]["stats"].caption = ""
@@ -54,5 +54,3 @@ function empire.updateStatusGui(player)
 	player.gui.left["statusGui"].caption = caption
 	player.gui.left["statusGui"]["stats"].caption = stats
 end
-
-return empire
