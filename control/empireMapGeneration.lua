@@ -37,8 +37,16 @@ function empire.worldMapChunkGenerated(surface, minY, maxY, minX, maxX)
 				if num == 3 then surface.create_entity{name="sand-rock-big", position = {x=x, y=y}, force = "neutral"} end
 			end
 			if x==0 and y == 0 then
+
+
 				local newSquad = surface.create_entity{name="empire_squad", position = {x=3, y=3}, force = game.forces["player"]}
-				newSquad.set_command{type = defines.command.go_to_location, destination = {x=10, y=10}}
+				newSquad.add_autopilot_destination({x=10, y=0})
+				--[[local newSquad = surface.create_entity{name="empire_squad", position = {x=5, y=3}, force = game.forces["player"]}
+				newSquad.set_distraction_command{type=defines.command.stop}
+				local newSquad = surface.create_entity{name="empire_squad", position = {x=5, y=5}, force = game.forces["enemy"]}
+				newSquad.set_distraction_command{type=defines.command.stop, distraction=defines.distraction.none}--]]
+				
+
 				local newSurface = empire.createSettlementMap(100, {x=0, y=0})
 				local tile = surface.create_entity{name="empire-world-map-tile", position = {x=0, y=0}, force = "neutral"}
 				empireG.worldMapTiles["" .. tile.position.x .. "," .. tile.position.y] = {surface = newSurface}

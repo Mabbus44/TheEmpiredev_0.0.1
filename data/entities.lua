@@ -121,24 +121,52 @@ huntingcabin.picture = {filename="__TheEmpiredev__/graphics/workshop.png", width
 huntingcabin.energy_source = {type = "void"}
 data:extend{huntingcabin}
 
-local squad = table.deepcopy(data.raw["unit"]["small-biter"])
+local leg = data.raw["spider-leg"]["spidertron-leg-1"]
+leg.graphics_set = {}
+
+local squad = table.deepcopy(data.raw["spider-vehicle"]["spidertron"])
+local character = table.deepcopy(data.raw["character"]["character"])
 squad.name = "empire_squad"
 squad.localised_name = {"empire_squad"}
-squad.corpse = nil
-squad.affected_by_tiles = nil
-squad.ai_settings = nil
-squad.alternative_attacking_frame_sequence = nil
-squad.can_open_gates = nil
-squad.dying_sound = nil
-squad.has_belt_immunity = nil
-squad.light = nil
-squad.max_pursue_distance = nil
-squad.min_pursue_time = nil
-squad.move_while_shooting = nil
-squad.radar_range = nil
-squad.render_layer = nil
-squad.rotation_speed = nil
-squad.running_sound_animation_positions = nil
-squad.spawning_time_modifier = nil
-squad.walking_sound = nil
+squad.graphics_set.animation = character.animations[1].running
+squad.graphics_set.base_animation = nil
+squad.graphics_set.shadow_animation = nil
+squad.graphics_set.shadow_base_animation = nil
+squad.spider_engine = {legs={leg="spidertron-leg-1", 
+      mount_position={0,0},
+      ground_position={0,0},
+      blocking_legs={}
+    }}
+squad.braking_force=999999
+squad.braking_power=nil
+--squad.graphics_set.animation.layers[1].filename = "__base__/graphics/entity/character/level1_running.png"
+--squad.graphics_set.animation.layers[1].hr_version.filename = "__base__/graphics/entity/character/hr-level1_running.png"
 data:extend{squad}
+
+--local squad = table.deepcopy(data.raw["unit"]["small-biter"])
+--squad.name = "empire_squad"
+--squad.localised_name = {"empire_squad"}
+--squad.corpse = nil
+--squad.affected_by_tiles = nil
+--squad.ai_settings = nil
+--squad.alternative_attacking_frame_sequence = nil
+--squad.can_open_gates = nil
+--squad.dying_sound = nil
+--squad.has_belt_immunity = nil
+--squad.light = nil
+--squad.max_pursue_distance = nil
+--squad.min_pursue_time = nil
+--squad.move_while_shooting = nil
+--squad.radar_range = nil
+--squad.render_layer = nil
+--squad.rotation_speed = nil
+--squad.running_sound_animation_positions = nil
+--squad.spawning_time_modifier = nil
+--squad.walking_sound = nil
+--data:extend{squad}
+--local newSquad = surface.create_entity{name="empire_squad", position = {x=3, y=3}, force = game.forces["player"]}
+--newSquad.set_distraction_command{type=defines.command.stop}
+--local newSquad = surface.create_entity{name="empire_squad", position = {x=5, y=3}, force = game.forces["player"]}
+--newSquad.set_distraction_command{type=defines.command.stop}
+--local newSquad = surface.create_entity{name="empire_squad", position = {x=5, y=5}, force = game.forces["enemy"]}
+--newSquad.set_distraction_command{type=defines.command.stop, distraction=defines.distraction.none}
